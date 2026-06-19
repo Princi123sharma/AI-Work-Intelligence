@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Work Intelligence — Settings</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      width: 520px;
+      min-height: 100vh;
+      max-height: none;
+      padding: 28px 28px 100px;
+      background: var(--bg-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .page-header { margin-bottom: 28px; }
+    .page-title {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-purple-l), var(--accent-blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .page-subtitle { font-size: 12px; color: var(--text-secondary); }
+
+    .section { margin-bottom: 28px; }
+    .section-title {
+      font-size: 10.5px; font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
+    .form-hint  { font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.5; }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    .form-select {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 10px 12px;
+      outline: none;
+      cursor: pointer;
+    }
+    .form-select:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    .provider-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .provider-panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .checkbox-row input { margin-top: 2px; accent-color: var(--accent-purple); }
+
+    .link { color: var(--accent-blue); text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+
+    .test-row { display: flex; gap: 8px; margin-top: 10px; }
+
+    .tracking-info {
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .tracking-info .check { color: var(--accent-green); font-weight: 600; }
+
+    .save-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(22,27,34,0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .save-bar .btn { width: auto; padding: 10px 28px; font-size: 13px; }
+
+    .saved-badge {
+      font-size: 12px; color: var(--accent-green);
+      display: none; align-items: center; gap: 5px;
+      animation: fadeIn 0.3s ease;
+    }
+    .saved-badge.show { display: flex; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="page-title">⚙️ Settings</div>
+    <div class="page-subtitle">Configure AI provider, Slack integration, and tracking preferences</div>
+  </div>
+
+  <!-- ── AI PROVIDER ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">🤖 AI Provider</div>
+
+    <div class="form-group">
+      <label class="form-label" for="aiProvider">Primary Provider</label>
+      <select id="aiProvider" class="form-select">
+        <option value="gemini">Google Gemini — Flash-Lite (free)</option>
+        <option value="groq">Groq — Llama 3.3 70B (free)</option>
+        <option value="openrouter">OpenRouter — Llama 3.3 70B (free)</option>
+        <option value="auto">Auto — try all configured keys</option>
+      </select>
+      <div class="form-hint">All providers below are free. No credit card required.</div>
+    </div>
+
+    <label class="checkbox-row form-group">
+      <input type="checkbox" id="aiFallback" checked />
+      <span>If the primary provider fails, automatically try other configured API keys.</span>
+    </label>
+
+    <div class="provider-panel">
+      <div class="provider-panel-title">Google Gemini</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <input type="password" id="geminiApiKey" class="form-input" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" />
+        <div class="form-hint">
+          Key from <a href="https://aistudio.google.com/apikey" target="_blank" class="link">aistudio.google.com/apikey</a>
+          · Model: Gemini 2.5 Flash-Lite
+        </div>
+      </div>
+      <div class="test-row">
+        <button class="btn btn-secondary btn-sm" id="testGeminiBtn">🧪 Test Gemini</button>
+      </div>
+      <div id="geminiStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
+    </div>
+
+    <div class="provider-panel">
+      <div class="provider-panel-title">Groq</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <input type="password" id="groqApiKey" class="form-input" placeholder="gsk_..." autocomplete="off" spellcheck="false" />
+        <div class="form-hint">
+          Key from <a href="https://console.groq.com/keys" target="_blank" class="link">console.groq.com/keys</a>
+          · Model: Llama 3.3 70B Versatile
+        </div>
+      </div>
+      <div class="test-row">
+        <button class="btn btn-secondary btn-sm" id="testGroqBtn">🧪 Test Groq</button>
+      </div>
+      <div id="groqStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
+    </div>
+
+    <div class="provider-panel">
+      <div class="provider-panel-title">OpenRouter</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <input type="password" id="openrouterApiKey" class="form-input" placeholder="sk-or-..." autocomplete="off" spellcheck="false" />
+        <div class="form-hint">
+          Key from <a href="https://openrouter.ai/keys" target="_blank" class="link">openrouter.ai/keys</a>
+          · Model: Llama 3.3 70B Instruct (free)
+        </div>
+      </div>
+      <div class="test-row">
+        <button class="btn btn-secondary btn-sm" id="testOpenrouterBtn">🧪 Test OpenRouter</button>
+      </div>
+      <div id="openrouterStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ── SLACK ───────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">💬 Slack Integration</div>
+
+    <div class="form-group">
+      <label class="form-label" for="slackWebhookUrl">Incoming Webhook URL</label>
+      <input
+        type="text"
+        id="slackWebhookUrl"
+        class="form-input"
+        placeholder="https://hooks.slack.com/services/T.../B.../..."
+        spellcheck="false"
+      />
+      <div class="form-hint">
+        Create a webhook at
+        <a href="https://api.slack.com/messaging/webhooks" target="_blank" class="link">api.slack.com/messaging/webhooks</a>,
+        paste the URL here, then click <strong>Save Settings</strong> below.
+      </div>
+    </div>
+
+    <div class="test-row">
+      <button class="btn btn-secondary btn-sm" id="testSlackBtn">🧪 Test Slack</button>
+    </div>
+    <div id="slackStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
+  </div>
+
+  <!-- ── TAB TRACKING ────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">📊 Tab Tracking</div>
+    <div class="tracking-info">
+      <span class="check">✅ Auto-tracking enabled</span><br />
+      The extension silently logs each tab you visit — title, URL, domain, and timestamp.
+      Data is stored <strong>locally</strong> on your device in Chrome Storage (never uploaded).
+      This powers the <em>History</em>, <em>Timeline</em>, and <em>Reports</em> features.
+    </div>
+  </div>
+
+  <!-- ── SAVE BAR ────────────────────────────────────────── -->
+  <div class="save-bar">
+    <button class="btn btn-primary" id="saveBtn">💾 Save Settings</button>
+    <div class="saved-badge" id="savedBadge">✅ Settings saved!</div>
+  </div>
+
+  <script src="slack.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

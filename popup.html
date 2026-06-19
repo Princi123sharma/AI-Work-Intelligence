@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Work Intelligence</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════ HEADER ════════════════════════ -->
+  <div class="header">
+    <div class="header-logo">
+      <div class="logo-icon">🧠</div>
+      <div>
+        <div class="header-title">AI Work Intelligence</div>
+        <div class="header-subtitle" id="headerDate">Loading...</div>
+      </div>
+    </div>
+    <button class="settings-btn" id="settingsBtn" title="Open Settings">⚙️</button>
+  </div>
+
+  <!-- ═══════════════════════ TAB NAV ═══════════════════════ -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="today">📋 Today</button>
+    <button class="tab-btn" data-tab="history">🕐 History</button>
+    <button class="tab-btn" data-tab="timeline">⏱ Timeline</button>
+    <button class="tab-btn" data-tab="reports">📊 Reports</button>
+  </nav>
+
+  <!-- ═══════════════════ TAB 1: TODAY ══════════════════════ -->
+  <div id="tab-today" class="tab-content active">
+
+    <button class="btn btn-primary" id="extractBtn">
+      ✨ Extract &amp; Refine Today's Tasks
+    </button>
+
+    <div id="todayStatus" class="status-msg" style="display:none;"></div>
+
+    <!-- Raw tabs -->
+    <div id="rawCard" class="card" style="display:none;">
+      <div class="card-title">📌 Raw Open Tabs</div>
+      <ul class="task-list" id="rawList"></ul>
+    </div>
+
+    <!-- AI Summary -->
+    <div id="summaryCard" class="card" style="display:none;">
+      <div class="card-title">💡 AI Summary</div>
+      <div class="summary-box" id="aiSummary"></div>
+    </div>
+
+    <!-- Refined tasks -->
+    <div id="refinedCard" class="card" style="display:none;">
+      <div class="card-title">
+        ✅ Refined Tasks
+        <span id="refinedCount" style="color:var(--accent-purple-l);margin-left:4px;"></span>
+      </div>
+      <ul class="task-list" id="refinedList"></ul>
+      <div class="add-task-row">
+        <input type="text" class="add-task-input" id="addTodayInput" placeholder="Add a task manually..." />
+        <button class="btn btn-secondary btn-sm" id="addTodayBtn">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div id="categoriesCard" class="card" style="display:none;">
+      <div class="card-title">🗂 Work Categories</div>
+      <div id="categoriesContent"></div>
+    </div>
+
+    <!-- Standup generator -->
+    <div id="standupCard" class="card" style="display:none;">
+      <div class="card-title">📝 Standup Generator</div>
+      <div class="standup-selector">
+        <button class="format-btn active" data-format="short">Short</button>
+        <button class="format-btn" data-format="detailed">Detailed</button>
+        <button class="format-btn" data-format="scrum">Scrum</button>
+      </div>
+      <button class="btn btn-secondary" id="genStandupBtn">⚡ Generate Standup</button>
+      <div class="standup-output" id="standupOutput" style="display:none;"></div>
+      <div class="btn-row" id="standupActions" style="display:none;">
+        <button class="btn btn-secondary" id="copyStandupBtn">📋 Copy to Clipboard</button>
+        <button class="btn btn-slack" id="standupSlackBtn">💬 Add to Slack</button>
+      </div>
+    </div>
+
+    <!-- Slack -->
+    <button class="btn btn-slack" id="todaySlackBtn" disabled>💬 Add to Slack</button>
+
+  </div><!-- /tab-today -->
+
+  <!-- ═══════════════════ TAB 2: HISTORY ════════════════════ -->
+  <div id="tab-history" class="tab-content">
+
+    <div class="search-row">
+      <input type="date" class="date-input" id="historyDateInput" />
+      <button class="btn btn-primary btn-sm" id="searchBtn">🔍 Search</button>
+    </div>
+
+    <div id="historyStatus" class="status-msg" style="display:none;"></div>
+
+    <!-- Results -->
+    <div id="historyResults" style="display:none;">
+      <div class="card">
+        <div class="card-title">
+          📋 <span id="historyDateLabel"></span>
+          <span id="historyCount" style="color:var(--accent-purple-l);margin-left:4px;"></span>
+        </div>
+        <ul class="task-list" id="historyList"></ul>
+        <div class="add-task-row">
+          <input type="text" class="add-task-input" id="addHistoryInput" placeholder="Add a task for this date..." />
+          <button class="btn btn-secondary btn-sm" id="addHistoryBtn">+ Add</button>
+        </div>
+      </div>
+      <button class="btn btn-slack" id="historySlackBtn">💬 Add to Slack (with date)</button>
+    </div>
+
+    <!-- Empty state -->
+    <div id="historyEmpty" class="empty-state" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <p>No activity recorded for this date.</p>
+      <p style="margin-top:4px;font-size:11px;color:var(--text-muted);">Tabs are tracked automatically as you browse.</p>
+    </div>
+
+    <!-- Available dates -->
+    <div class="card" id="datesCard" style="margin-top:10px;">
+      <div class="card-title">📅 Recent History</div>
+      <div class="date-chips" id="dateChips">
+        <span style="font-size:11px;color:var(--text-muted);">Loading...</span>
+      </div>
+    </div>
+
+  </div><!-- /tab-history -->
+
+  <!-- ══════════════════ TAB 3: TIMELINE ════════════════════ -->
+  <div id="tab-timeline" class="tab-content">
+
+    <button class="btn btn-primary" id="genTimelineBtn">🤖 Generate AI Timeline</button>
+
+    <div id="timelineStatus" class="status-msg" style="display:none;"></div>
+
+    <!-- AI timeline narrative -->
+    <div id="aiTimelineCard" class="card" style="display:none;margin-top:10px;">
+      <div class="card-title">🤖 AI Work Timeline</div>
+      <div class="timeline" id="aiTimelineContent"></div>
+    </div>
+
+    <!-- Raw activity log -->
+    <div id="rawTimelineCard" class="card" style="margin-top:10px;display:none;">
+      <div class="card-title">📍 Raw Activity Log</div>
+      <div class="timeline" id="rawTimelineContent"></div>
+    </div>
+
+    <div id="timelineEmpty" class="empty-state" style="display:none;">
+      <div class="empty-icon">⏳</div>
+      <p>No activity recorded today yet.</p>
+      <p style="margin-top:4px;font-size:11px;color:var(--text-muted);">Browse tabs and come back later.</p>
+    </div>
+
+    <button class="btn btn-slack" id="timelineSlackBtn" style="display:none;">💬 Add to Slack</button>
+
+  </div><!-- /tab-timeline -->
+
+  <!-- ══════════════════ TAB 4: REPORTS ═════════════════════ -->
+  <div id="tab-reports" class="tab-content">
+
+    <div class="report-toggle">
+      <button class="report-toggle-btn active" data-period="weekly">📅 Weekly</button>
+      <button class="report-toggle-btn" data-period="monthly">📆 Monthly</button>
+    </div>
+
+    <div id="reportsContent">
+      <div class="loading"><div class="spinner"></div>Loading report...</div>
+    </div>
+
+    <div id="reportsStatus" class="status-msg" style="display:none;"></div>
+    <button class="btn btn-slack" id="reportSlackBtn">💬 Add to Slack</button>
+
+  </div><!-- /tab-reports -->
+
+  <!-- Scripts loaded in dependency order -->
+  <script src="storage.js"></script>
+  <script src="slack.js"></script>
+  <script src="ai.js"></script>
+  <script src="analytics.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

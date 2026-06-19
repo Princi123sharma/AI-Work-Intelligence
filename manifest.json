@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AI Work Intelligence",
+  "version": "2.0",
+  "description": "AI-powered work tracker: refines tab titles with AI, stores history, generates standups, and posts to Slack.",
+  "permissions": ["tabs", "storage"],
+  "host_permissions": [
+    "https://hooks.slack.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*",
+    "https://openrouter.ai/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Work Intelligence"
+  },
+  "options_page": "settings.html"
+}
