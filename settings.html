@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Work Intelligence — Settings</title>
+  <title>AI Work Intelligence - Settings</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
     body {
@@ -36,7 +36,7 @@
     .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
     .form-hint  { font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.5; }
 
-    .form-input {
+    .form-input, .form-select {
       width: 100%;
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -46,30 +46,13 @@
       font-size: 12px;
       padding: 10px 12px;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .form-input:focus {
+    .form-input:focus, .form-select:focus {
       border-color: var(--accent-purple);
       box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
     }
     .form-input::placeholder { color: var(--text-muted); }
-
-    .form-select {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      padding: 10px 12px;
-      outline: none;
-      cursor: pointer;
-    }
-    .form-select:focus {
-      border-color: var(--accent-purple);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
-    }
+    .form-select { cursor: pointer; }
 
     .provider-panel {
       background: var(--bg-card);
@@ -134,23 +117,35 @@
   </style>
 </head>
 <body>
-
   <div class="page-header">
-    <div class="page-title">⚙️ Settings</div>
-    <div class="page-subtitle">Configure AI provider, Slack integration, and tracking preferences</div>
+    <div class="page-title">Settings</div>
+    <div class="page-subtitle">Configure AI provider, destinations, and tracking preferences</div>
   </div>
 
-  <!-- ── AI PROVIDER ─────────────────────────────────────── -->
   <div class="section">
-    <div class="section-title">🤖 AI Provider</div>
+    <div class="section-title">AI Provider</div>
+
+    <div class="form-group">
+      <label class="form-label" for="userProfile">User Profile</label>
+      <input type="text" id="userProfile" class="form-input" placeholder="Salesforce Developer, Full Stack Developer, HR, Student..." autocomplete="off" spellcheck="true" />
+      <div class="form-hint">
+        Optional. Type any role. AI will build role-specific rules from that profile and hide unrelated activity. Leave blank to keep the current behavior.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="workCategoryTags">Work Categories / Tags</label>
+      <input type="text" id="workCategoryTags" class="form-input" placeholder="Code Review, Customer Calls, Research, Documentation..." autocomplete="off" spellcheck="true" />
+      <div class="form-hint">Optional comma-separated categories. These guide AI classification and analytics scoring for your workflow.</div>
+    </div>
 
     <div class="form-group">
       <label class="form-label" for="aiProvider">Primary Provider</label>
       <select id="aiProvider" class="form-select">
-        <option value="gemini">Google Gemini — Flash-Lite (free)</option>
-        <option value="groq">Groq — Llama 3.3 70B (free)</option>
-        <option value="openrouter">OpenRouter — Llama 3.3 70B (free)</option>
-        <option value="auto">Auto — try all configured keys</option>
+        <option value="gemini">Google Gemini - Flash-Lite (free)</option>
+        <option value="groq">Groq - Llama 3.3 70B (free)</option>
+        <option value="openrouter">OpenRouter - Llama 3.3 70B (free)</option>
+        <option value="auto">Auto - try all configured keys</option>
       </select>
       <div class="form-hint">All providers below are free. No credit card required.</div>
     </div>
@@ -164,14 +159,9 @@
       <div class="provider-panel-title">Google Gemini</div>
       <div class="form-group" style="margin-bottom:10px;">
         <input type="password" id="geminiApiKey" class="form-input" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" />
-        <div class="form-hint">
-          Key from <a href="https://aistudio.google.com/apikey" target="_blank" class="link">aistudio.google.com/apikey</a>
-          · Model: Gemini 2.5 Flash-Lite
-        </div>
+        <div class="form-hint">Key from <a href="https://aistudio.google.com/apikey" target="_blank" class="link">aistudio.google.com/apikey</a> | Model: Gemini 2.5 Flash-Lite</div>
       </div>
-      <div class="test-row">
-        <button class="btn btn-secondary btn-sm" id="testGeminiBtn">🧪 Test Gemini</button>
-      </div>
+      <div class="test-row"><button class="btn btn-secondary btn-sm" id="testGeminiBtn">Test Gemini</button></div>
       <div id="geminiStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
     </div>
 
@@ -179,14 +169,9 @@
       <div class="provider-panel-title">Groq</div>
       <div class="form-group" style="margin-bottom:10px;">
         <input type="password" id="groqApiKey" class="form-input" placeholder="gsk_..." autocomplete="off" spellcheck="false" />
-        <div class="form-hint">
-          Key from <a href="https://console.groq.com/keys" target="_blank" class="link">console.groq.com/keys</a>
-          · Model: Llama 3.3 70B Versatile
-        </div>
+        <div class="form-hint">Key from <a href="https://console.groq.com/keys" target="_blank" class="link">console.groq.com/keys</a> | Model: Llama 3.3 70B Versatile</div>
       </div>
-      <div class="test-row">
-        <button class="btn btn-secondary btn-sm" id="testGroqBtn">🧪 Test Groq</button>
-      </div>
+      <div class="test-row"><button class="btn btn-secondary btn-sm" id="testGroqBtn">Test Groq</button></div>
       <div id="groqStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
     </div>
 
@@ -194,62 +179,89 @@
       <div class="provider-panel-title">OpenRouter</div>
       <div class="form-group" style="margin-bottom:10px;">
         <input type="password" id="openrouterApiKey" class="form-input" placeholder="sk-or-..." autocomplete="off" spellcheck="false" />
-        <div class="form-hint">
-          Key from <a href="https://openrouter.ai/keys" target="_blank" class="link">openrouter.ai/keys</a>
-          · Model: Llama 3.3 70B Instruct (free)
-        </div>
+        <div class="form-hint">Key from <a href="https://openrouter.ai/keys" target="_blank" class="link">openrouter.ai/keys</a> | Model: Llama 3.3 70B Instruct (free)</div>
       </div>
-      <div class="test-row">
-        <button class="btn btn-secondary btn-sm" id="testOpenrouterBtn">🧪 Test OpenRouter</button>
-      </div>
+      <div class="test-row"><button class="btn btn-secondary btn-sm" id="testOpenrouterBtn">Test OpenRouter</button></div>
       <div id="openrouterStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
     </div>
   </div>
 
-  <!-- ── SLACK ───────────────────────────────────────────── -->
   <div class="section">
-    <div class="section-title">💬 Slack Integration</div>
+    <div class="section-title">Destination Integration</div>
 
     <div class="form-group">
-      <label class="form-label" for="slackWebhookUrl">Incoming Webhook URL</label>
-      <input
-        type="text"
-        id="slackWebhookUrl"
-        class="form-input"
-        placeholder="https://hooks.slack.com/services/T.../B.../..."
-        spellcheck="false"
-      />
-      <div class="form-hint">
-        Create a webhook at
-        <a href="https://api.slack.com/messaging/webhooks" target="_blank" class="link">api.slack.com/messaging/webhooks</a>,
-        paste the URL here, then click <strong>Save Settings</strong> below.
+      <label class="form-label" for="activeDestination">Active Destination</label>
+      <select id="activeDestination" class="form-select">
+        <option value="slack">Slack</option>
+        <option value="teams">Microsoft Teams</option>
+        <option value="googleChat">Google Chat</option>
+        <option value="customApi">Custom API</option>
+      </select>
+      <div class="form-hint">Reports are built once, then adapted to the selected platform.</div>
+    </div>
+
+    <div class="provider-panel" data-destination-panel="slack">
+      <div class="provider-panel-title">Slack</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" for="slackWebhookUrl">Incoming Webhook URL</label>
+        <input type="text" id="slackWebhookUrl" class="form-input" placeholder="https://hooks.slack.com/services/T.../B.../..." spellcheck="false" />
+        <div class="form-hint">Existing Slack webhook settings are preserved for backward compatibility.</div>
       </div>
     </div>
 
-    <div class="test-row">
-      <button class="btn btn-secondary btn-sm" id="testSlackBtn">🧪 Test Slack</button>
+    <div class="provider-panel" data-destination-panel="teams" style="display:none;">
+      <div class="provider-panel-title">Microsoft Teams</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" for="teamsWebhookUrl">Incoming Webhook URL</label>
+        <input type="text" id="teamsWebhookUrl" class="form-input" placeholder="https://..." spellcheck="false" />
+        <div class="form-hint">Uses a Teams Adaptive Card payload.</div>
+      </div>
     </div>
-    <div id="slackStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
+
+    <div class="provider-panel" data-destination-panel="googleChat" style="display:none;">
+      <div class="provider-panel-title">Google Chat</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" for="googleChatWebhookUrl">Incoming Webhook URL</label>
+        <input type="text" id="googleChatWebhookUrl" class="form-input" placeholder="https://chat.googleapis.com/v1/spaces/..." spellcheck="false" />
+        <div class="form-hint">Uses a Google Chat card plus plain text fallback.</div>
+      </div>
+    </div>
+
+    <div class="provider-panel" data-destination-panel="customApi" style="display:none;">
+      <div class="provider-panel-title">Custom API</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" for="customApiUrl">Endpoint URL</label>
+        <input type="text" id="customApiUrl" class="form-input" placeholder="https://api.example.com/work-report" spellcheck="false" />
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label" for="customApiAuthToken">Authorization Token</label>
+        <input type="password" id="customApiAuthToken" class="form-input" placeholder="Bearer token or raw token" autocomplete="off" spellcheck="false" />
+        <div class="form-hint">Optional. Raw tokens are sent as Bearer tokens unless they already include a scheme.</div>
+      </div>
+    </div>
+
+    <div class="test-row"><button class="btn btn-secondary btn-sm" id="testDestinationBtn">Test Destination</button></div>
+    <div id="destinationStatus" class="status-msg" style="display:none;margin-top:8px;"></div>
   </div>
 
-  <!-- ── TAB TRACKING ────────────────────────────────────── -->
   <div class="section">
-    <div class="section-title">📊 Tab Tracking</div>
+    <div class="section-title">Tab Tracking</div>
     <div class="tracking-info">
-      <span class="check">✅ Auto-tracking enabled</span><br />
-      The extension silently logs each tab you visit — title, URL, domain, and timestamp.
-      Data is stored <strong>locally</strong> on your device in Chrome Storage (never uploaded).
+      <span class="check">Auto-tracking enabled</span><br />
+      The extension silently logs each tab you visit: title, URL, domain, and timestamp.
+      Data is stored <strong>locally</strong> on your device in Chrome Storage.
       This powers the <em>History</em>, <em>Timeline</em>, and <em>Reports</em> features.
     </div>
   </div>
 
-  <!-- ── SAVE BAR ────────────────────────────────────────── -->
   <div class="save-bar">
-    <button class="btn btn-primary" id="saveBtn">💾 Save Settings</button>
-    <div class="saved-badge" id="savedBadge">✅ Settings saved!</div>
+    <button class="btn btn-primary" id="saveBtn">Save Settings</button>
+    <div class="saved-badge" id="savedBadge">Settings saved!</div>
   </div>
 
-  <script src="slack.js"></script>
+  <script src="storage.js"></script>
+  <script src="formatter.js"></script>
+  <script src="destinations.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

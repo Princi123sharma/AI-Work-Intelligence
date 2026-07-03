@@ -148,12 +148,122 @@ function _parseJsonObject(text) {
   return null;
 }
 
+function _normalizeProfileRefinements(items) {
+  if (!Array.isArray(items)) return [];
+
+  return items
+    .map(item => {
+      if (typeof item === 'string') {
+        const normalized = item.trim().replace(/,$/, '');
+        if (normalized.startsWith('{') && normalized.endsWith('}')) {
+          try {
+            item = JSON.parse(normalized);
+          } catch {
+            return null;
+          }
+        } else {
+          return { sourceIndex: null, task: normalized };
+        }
+      }
+
+      if (!item || typeof item !== 'object') return null;
+
+      const rawIndex = Number(item.index ?? item.sourceIndex ?? item.source_index);
+      const task = String(item.task || item.title || item.description || '').trim();
+      if (!task) return null;
+
+      return {
+        sourceIndex: Number.isFinite(rawIndex) ? Math.max(0, rawIndex - 1) : null,
+        task
+      };
+    })
+    .filter(Boolean);
+}
+
+async function _getUserProfile() {
+  const settings = await getSettings();
+  return String(settings.userProfile || '').trim();
+}
+
+async function _getWorkCategoryTags() {
+  const settings = await getSettings();
+  if (typeof getConfiguredWorkCategories === 'function') {
+    return getConfiguredWorkCategories(settings);
+  }
+  if (typeof parseWorkCategoryTags === 'function') {
+    return parseWorkCategoryTags(settings.workCategoryTags);
+  }
+  return String(settings.workCategoryTags || '')
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(Boolean);
+}
+
+function _categoryPreferenceRules(tags) {
+  if (!tags || !tags.length) return '';
+  return `When categories are needed, prefer this user-provided category list when it fits the tasks: ${tags.join(' | ')}.
+You may add a more precise category only when none of these tags accurately describes the task.`;
+}
+
+function _profileContext(profile) {
+  if (!profile) return '';
+  return `The user's profile is exactly: ${profile}.
+Before classifying tabs, silently derive a role definition for this profile:
+1. Normal responsibilities and deliverables for "${profile}"
+2. Common tools, websites, apps, documents, platforms, and learning resources used by "${profile}"
+3. Activities that are clearly unrelated to "${profile}"
+
+Classify a tab as work ONLY if its title/context directly supports that derived role definition.
+Do not classify generic productivity, generic research, generic YouTube, generic social media, or generic communication as work unless it clearly connects to "${profile}".
+Learning content, courses, docs, tutorials, and YouTube count as work only when the topic clearly supports "${profile}".
+Entertainment videos, shorts, music, gaming, movies, celebrity content, sports highlights, personal shopping, personal messages, and unrelated browsing are non-work.
+Evaluate every tab independently. The same tab may be work for one profile and non-work for another.
+When uncertain, skip the activity.`;
+}
+
+function _dynamicCategoryRules(profile) {
+  return `Create categories dynamically for the user's exact profile: ${profile}.
+Use concise category names that are specific to "${profile}" and the actual tasks.
+Prefer 4-8 useful categories when possible.
+Do not reuse a generic developer/student/social-media category set unless it truly matches "${profile}".
+Avoid non-work categories.`;
+}
+
 // ─── FEATURE 1A: TASK REFINEMENT ──────────────────────────────────────────────
 
 async function refineTasks(rawTitles) {
   if (!rawTitles || rawTitles.length === 0) return [];
 
   const list = rawTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const userProfile = await _getUserProfile();
+  const workCategoryTags = await _getWorkCategoryTags();
+
+  if (userProfile) {
+    const prompt = `You are a professional work assistant.
+${_profileContext(userProfile)}
+${_categoryPreferenceRules(workCategoryTags)}
+
+Convert these raw browser tab titles into clear, professional work task descriptions for this user profile.
+
+Raw tab titles:
+${list}
+
+Rules:
+- Convert each work-related tab title into 1 concise professional task description
+- Skip every non-work or unrelated tab for the user's profile
+- For localhost/127.0.0.1/IP addresses, include them only when local development/testing fits the profile
+- Include YouTube only when the video/title clearly supports this profile's work, study, learning, or skill development
+- For collaboration tools such as Slack/Teams/email, include them only when the title/context fits work for the profile
+- Be specific but concise (max 12 words per task)
+- Return ONLY a JSON array of strings, one per valid work task, no numbering
+
+Example: ["Reviewed campaign analytics", "Watched database lecture on YouTube", "Researched API documentation"]
+
+Return ONLY the JSON array, nothing else.`;
+
+    const result = await _aiCall(prompt, 1024);
+    return _parseJsonArray(result);
+  }
 
   const prompt = `You are a professional work assistant helping a software developer.
 Convert these raw browser tab titles into clear, professional work task descriptions.
@@ -178,12 +288,65 @@ Return ONLY the JSON array, nothing else.`;
   return _parseJsonArray(result);
 }
 
+async function refineProfileTasks(rawTitles) {
+  if (!rawTitles || rawTitles.length === 0) return [];
+
+  const userProfile = await _getUserProfile();
+  const workCategoryTags = await _getWorkCategoryTags();
+  if (!userProfile) {
+    const tasks = await refineTasks(rawTitles);
+    return tasks.map((task, sourceIndex) => ({ sourceIndex, task }));
+  }
+
+  const list = rawTitles.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const prompt = `You are a professional work assistant.
+${_profileContext(userProfile)}
+${_categoryPreferenceRules(workCategoryTags)}
+
+Review these raw browser tab titles and keep only work-related activity for this user profile.
+
+Raw tab titles:
+${list}
+
+Rules:
+- Include only tabs that are work-related for the user's profile
+- Skip unrelated personal, entertainment, shopping, gaming, generic browsing, and off-role activity
+- For localhost/127.0.0.1/IP addresses, include them only when local development/testing fits the profile
+- Include YouTube only when the video/title clearly supports this profile's work, study, learning, or skill development
+- For collaboration tools such as Slack/Teams/email, include them only when the title/context fits work for the profile
+- Convert each included tab into 1 concise professional task description, max 12 words
+- Preserve the original 1-based tab number in the "index" field
+- Return ONLY a JSON array of objects shaped exactly like [{"index":1,"task":"Task description"}]
+
+Example: [{"index":2,"task":"Reviewed campaign analytics"},{"index":4,"task":"Watched calculus lecture on YouTube"}]
+
+Return ONLY the JSON array, nothing else.`;
+
+  const result = await _aiCall(prompt, 1024);
+  return _normalizeProfileRefinements(_parseJsonArray(result));
+}
+
 // ─── FEATURE 1B: DAILY SUMMARY ────────────────────────────────────────────────
 
 async function generateSummary(tasks) {
   if (!tasks || tasks.length === 0) return 'No tasks available to summarize.';
 
   const list = Array.isArray(tasks) ? tasks.join(', ') : tasks;
+  const userProfile = await _getUserProfile();
+
+  if (userProfile) {
+    const prompt = `Write a concise 1-2 sentence professional daily work summary for a ${userProfile}.
+Tasks completed: ${list}
+
+Requirements:
+- Sound like a professional writing to their team lead or manager
+- Be specific about profile-relevant work done
+- Natural, conversational tone (not robotic)
+- No bullet points, just flowing text
+Return ONLY the summary text.`;
+
+    return await _aiCall(prompt, 256);
+  }
 
   const prompt = `Write a concise 1–2 sentence professional daily work summary.
 Tasks completed: ${list}
@@ -204,9 +367,38 @@ async function categorizeTasks(tasks) {
   if (!tasks || tasks.length === 0) return {};
 
   const list = tasks.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const userProfile = await _getUserProfile();
+  const workCategoryTags = await _getWorkCategoryTags();
+
+  if (userProfile) {
+    const prompt = `Categorize each work task for a ${userProfile}.
+${_profileContext(userProfile)}
+
+${_dynamicCategoryRules(userProfile)}
+${_categoryPreferenceRules(workCategoryTags)}
+
+Tasks:
+${list}
+
+Rules:
+- Assign each task to exactly one work category
+- Do not include non-work categories
+- Only include categories that have at least one task
+- Return ONLY a valid JSON object where keys are category names and values are arrays of task strings
+
+Return ONLY the JSON object, nothing else.`;
+
+    const result = await _aiCall(prompt, 1024);
+    const parsed = _parseJsonObject(result);
+    return parsed || { 'Other': tasks };
+  }
+
+  const categoryLine = workCategoryTags.length
+    ? workCategoryTags.join(' | ')
+    : 'Frontend Development | Backend Development | Salesforce | Meetings | Research | DevOps | Testing | Design | Other';
 
   const prompt = `Categorize each work task into exactly one of these categories:
-Frontend Development | Backend Development | Salesforce | Meetings | Research | DevOps | Testing | Design | Other
+${categoryLine}
 
 Tasks:
 ${list}
@@ -233,10 +425,16 @@ async function generateStandup(tasks, format = 'short', date = null) {
 
   const taskList = tasks.map(t => `• ${t}`).join('\n');
 
+  const userProfile = await _getUserProfile();
+  const roleLine = userProfile
+    ? `The user is a ${userProfile}. Make the standup sound appropriate for that role.\n\n`
+    : '';
+
   let prompt;
 
   if (format === 'short') {
     prompt = `Generate a SHORT professional daily standup for ${dateLabel}.
+${roleLine}
 
 Tasks worked on:
 ${taskList}
@@ -251,6 +449,7 @@ Keep each bullet under 10 words. Return ONLY the standup text.`;
 
   } else if (format === 'detailed') {
     prompt = `Write a DETAILED daily standup narrative for ${dateLabel}.
+${roleLine}
 
 Tasks worked on:
 ${taskList}
@@ -260,6 +459,7 @@ Sound professional and confident. Return ONLY the narrative paragraph.`;
 
   } else if (format === 'scrum') {
     prompt = `Generate a SCRUM format daily standup for ${dateLabel}.
+${roleLine}
 
 Tasks completed:
 ${taskList}
@@ -297,18 +497,28 @@ async function generateTimeline(tabHistory) {
     return `${t} → ${e.title || e.domain || e.url}`;
   }).join('\n');
 
-  const prompt = `You are analyzing a developer's browser activity log.
+  const userProfile = await _getUserProfile();
+  const profileRules = userProfile
+    ? `${_profileContext(userProfile)}
+- Focus only on timeline entries that are work-related for this profile
+- Skip unrelated personal or entertainment activity
+`
+    : '';
+
+  const prompt = `You are analyzing a ${userProfile || 'developer'}'s browser activity log.
 Generate a clean chronological work timeline.
+${profileRules}
 
 Activity log:
 ${logLines}
 
 Rules:
-- Group closely related activities (< 5 mins apart) into one entry
-- Use professional activity descriptions
-- Fill reasonable time gaps for context
+- Every timestamp MUST be copied exactly from the activity log (same HH:MM AM/PM)
+- Do not invent, infer, interpolate, round, or add timestamps for gaps
+- Group closely related activities (< 5 mins apart) into one entry using the earliest timestamp from that group
+- Use professional activity descriptions based on page titles in the log
 - Format each line EXACTLY as: "HH:MM AM – Activity description"
-- Include 5–12 timeline entries
+- Include up to 12 timeline entries
 - Focus on meaningful work, skip brief page visits
 
 Return ONLY the timeline, one entry per line, no other text.`;
@@ -323,8 +533,9 @@ async function generateInsight(stats) {
 
   const domainStr = (topDomains || []).slice(0, 4).map(([d, c]) => `${d}(${c})`).join(', ');
   const catStr    = Object.entries(categories || {}).map(([c, n]) => `${c}: ${n}`).join(', ');
+  const userProfile = await _getUserProfile();
 
-  const prompt = `Based on a developer's daily work data, write a 1-sentence productivity insight.
+  const prompt = `Based on a ${userProfile || 'developer'}'s daily work data, write a 1-sentence productivity insight.
 
 Data:
 - Total tabs tracked: ${totalTabs}

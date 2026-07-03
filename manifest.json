@@ -2,9 +2,17 @@
   "manifest_version": 3,
   "name": "AI Work Intelligence",
   "version": "2.0",
-  "description": "AI-powered work tracker: refines tab titles with AI, stores history, generates standups, and posts to Slack.",
-  "permissions": ["tabs", "storage"],
+  "description": "AI-powered work tracker: refines tab titles with AI, stores history, generates standups, and posts to Slack, Teams, Google Chat, or a custom webhook.",
+  "permissions": ["tabs", "storage", "history"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["timeline-content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "host_permissions": [
+    "<all_urls>",
     "https://hooks.slack.com/*",
     "https://generativelanguage.googleapis.com/*",
     "https://api.groq.com/*",
